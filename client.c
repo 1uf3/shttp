@@ -38,5 +38,18 @@ int main(int argc, char *argv[]) {
   }
   printf("connected to socket");
 
+  int cnt, len;
+  char buff[1024];
+  while( (cnt = read(fileno(stdin), buff, sizeof(buff))) > 0 ) {
+    if (len < 0) {
+      perror("read");
+      exit(EXIT_FAILURE);
+    }
+    if ( (len = write(sockfd, buff, cnt)) != cnt ) {
+      perror("write");
+      exit(EXIT_FAILURE);
+    }
+  }
+
   exit(EXIT_SUCCESS);
 }

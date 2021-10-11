@@ -36,8 +36,21 @@ int main(int argc, char *argv[]) {
   printf("\taddr %s\n", inet_ntoa(srv.sin_addr));
   printf("\tport %d\n", ntohs(srv.sin_port));
 
-  while ( (accept(sockfd, (struct sockaddr *)&srv, &socklen)) >= 0 ) {
+  if ( (infd = accept(sockfd, (struct sockaddr *)&srv, &socklen)) >= 0 ) {
     puts("New connection granted");
+  }
+
+  int cnt, len;
+  char buff[1024];
+  while ( (cnt = read(infd, buff, sizeof(buff))) > 0 ) {
+    if ( len < 0 ) {
+      perror("write");
+      exit(EXIT_FAILURE);
+    }
+    if ( (len = write(fileno(stdout), buff, cnt)) != cnt ) {
+      perror("write");
+      exit(EXIT_FAILURE);
+    }
   }
 
   exit(EXIT_SUCCESS);
