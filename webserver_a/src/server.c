@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
   // Initialize
   memset(&srv, 0, sizeof(srv));
   srv.sin_family = AF_INET;
-  srv.sin_port = htons(50000);
+  srv.sin_port = htons(4000);
 
   socklen = sizeof(srv);
   if ( (bind(sockfd, (struct sockaddr *)&srv, socklen)) < 0 ) {
