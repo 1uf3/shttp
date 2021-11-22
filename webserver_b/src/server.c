@@ -10,8 +10,8 @@ int main(int argc, char *argv[]) {
   int sock_srv, socket_cli;
   struct sockaddr_in srv;
   struct sockaddr_in cli;
-  socklen_t socklen;
-  int i = 1;
+  socklen_t cli_sock_len;
+  int i = 0;
 
   if ( (sock_srv = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
     perror("socket");
@@ -24,13 +24,12 @@ int main(int argc, char *argv[]) {
   srv.sin_port = htons(4000);
   srv.sin_addr.s_addr = INADDR_ANY;
 
-  socklen = sizeof(srv);
-  if ( (bind(sock_srv, (struct sockaddr *)&srv, socklen)) < 0 ) {
+  if ( (bind(sock_srv, (struct sockaddr*)&srv, sizeof(srv))) < 0 ) {
     perror("bind");
     exit(EXIT_FAILURE);
   }
 
-  if( listen(sock_srv, 1) < 0 ) {
+  if( listen(sock_srv, 5) < 0 ) {
     perror("listen");
     exit(EXIT_FAILURE);
   }
@@ -38,32 +37,33 @@ int main(int argc, char *argv[]) {
   printf("\taddr %s\n", inet_ntoa(srv.sin_addr));
   printf("\tport %d\n", ntohs(srv.sin_port));
 
-  if ( (socket_cli = accept(sock_srv, (struct sockaddr *)&srv, &socklen)) < 0 ) {
+  putchar('\n');
+  puts("-----------------------------------------------------------------------------------");
+  putchar('\n');
+  cli_sock_len = sizeof(cli);
+  if ( (socket_cli = accept(sock_srv, (struct sockaddr *)&cli, &cli_sock_len)) < 0 ) {
     close(sock_srv);
   }
-  puts("New connection granted\n");
 
-  while(1) {
-    int req, res;
-    char buff[1024];
-    memset(buff, 0, sizeof(buff));
-    req = read(socket_cli, buff, sizeof(buff));
-    printf("req: %s\n", buff);
-
-    if(strncmp(buff, "quit", sizeof(buff)) == 0) {
-      break;
-    }
-
-    printf("res: ");
-    scanf("%s", buff);
-
-    res = write(socket_cli, buff, sizeof(buff));
-
-    if(strncmp(buff, "quit", sizeof(buff)) == 0) {
-      break;
-    }
+  char buff[8190];
+  memset(buff,0,sizeof(buff));
+  int req = read(socket_cli, buff, sizeof(buff));
+  if (req < 0) {
+    perror("read");
+    exit(EXIT_FAILURE);
   }
 
+  printf("HTTP Request: %s\n", buff);
+  putchar('\n');
+  while(i < 8190) {
+    printf("0x%02x ", buff[i]);
+    if(i % 17 == 16) {
+      putchar('\n');
+    }
+    i++;
+  }
+
+  close(socket_cli);
   close(sock_srv);
 
   exit(EXIT_SUCCESS);
