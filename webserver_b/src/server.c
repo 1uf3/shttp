@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <netdb.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -9,6 +10,7 @@
 int main(int argc, char *argv[]) {
   int sock_srv, socket_cli;
   struct sockaddr_in srv;
+  socklen_t srv_sock_len;
   struct sockaddr_in cli;
   socklen_t cli_sock_len;
   int i = 0;
@@ -24,16 +26,35 @@ int main(int argc, char *argv[]) {
   srv.sin_port = htons(4000);
   srv.sin_addr.s_addr = INADDR_ANY;
 
-  if ( (bind(sock_srv, (struct sockaddr*)&srv, sizeof(srv))) < 0 ) {
+  srv_sock_len = sizeof(srv);
+  if ( (bind(sock_srv, (struct sockaddr*)&srv, srv_sock_len)) < 0 ) {
     perror("bind");
     exit(EXIT_FAILURE);
   }
 
-  if( listen(sock_srv, 5) < 0 ) {
+  if( listen(sock_srv, 1) < 0 ) {
     perror("listen");
     exit(EXIT_FAILURE);
   }
+
+//  char hostbuf[256];
+//  char *IPbuf;
+//  struct hostent* host_entry;
+//
+//  gethostname(hostbuf, sizeof(hostbuf));
+//  host_entry = gethostbyname(hostbuf);
+//  if (host_entry == NULL) {
+//    perror("gethostbyname");
+//    exit(EXIT_FAILURE);
+//  }
+//  IPbuf = inet_ntoa(*(struct in_addr*)host_entry->h_addr_list[0]);
+//  if (IPbuf == NULL) {
+//    perror("inet_ntoa");
+//    exit(EXIT_FAILURE);
+//  }
+
   puts("TCP/IP socket available");
+// printf("\taddr %s\n", IPbuf);
   printf("\taddr %s\n", inet_ntoa(srv.sin_addr));
   printf("\tport %d\n", ntohs(srv.sin_port));
 
@@ -53,8 +74,11 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  // Print http request
   printf("HTTP Request: %s\n", buff);
   putchar('\n');
+
+  // Print hex code
   while(i < 8190) {
     printf("0x%02x ", buff[i]);
     if(i % 17 == 16) {
