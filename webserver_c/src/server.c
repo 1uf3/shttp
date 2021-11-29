@@ -68,6 +68,7 @@ int main(int argc, char *argv[]) {
     char buff[8190];
     char filename[1100];
     memset(buff,0,sizeof(buff));
+    memset(filename,0,sizeof(filename));
     int req = read(socket_cli, buff, sizeof(buff));
     if (req < 0) {
       perror("read");
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]) {
     putchar('\n');
 
     getRequestFileName(buff, filename);
-    filename[strlen(filename)-1] = '\0';
+//    filename[strlen(filename)-1] = '\0';
     printf("%s\nsize%lu\n", filename, strlen(filename));
     //  exit(1);
     char tmp[1024];
@@ -100,9 +101,8 @@ int main(int argc, char *argv[]) {
     printf("%s\nsize%lu\n", filename, strlen(filename));
 
     if(isFileExist(filename) != 0) {
-      server_status(socket_cli, "HTTP/1.0 404 NotFound\r\n");
-      close(socket_cli);
-      continue;
+      strcpy(request, "HTTP/1.0 404 NotFound\r\n");
+//      server_status(socket_cli, "HTTP/1.0 404 NotFound\r\n");
     }
 
     if(isFileExist(filename) == 0) {
@@ -141,20 +141,14 @@ int isFile(const char* name) {
 
 void getRequestFileName(const char* req, char* name) {
   char tmp[1024];
-  int i = 0;
-  int j = 0;
-  while(req[i] != ' ') {
-    i++;
-  }
-  i++;
-  while(req[i] != ' ') {
-    tmp[j] = req[i];
-    i++;
-    j++;
-  }
-  tmp[++j] = '\0';
+  memset(tmp, 0, sizeof(tmp));
+  sscanf(req, "%[^\n]", tmp); 
+
+  char *method = strtok(tmp, " ");       
+  char *path = strtok(NULL, " ");  
+
   strcpy(name, SERVER_ROOT);
-  strcat(name, tmp);
+  strcat(name, path);
 }
 
 int isFileExist(char* filename) {

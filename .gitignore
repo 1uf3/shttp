@@ -2,6 +2,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c,cmake
 # Edit at https://www.toptal.com/developers/gitignore?templates=c,cmake
 
+
 ### C ###
 # Prerequisites
 *.d
@@ -74,3 +75,7 @@ _deps
 *-prefix/
 
 # End of https://www.toptal.com/developers/gitignore/api/c,cmake
+
+
+httperf/
+*.DS_Store
