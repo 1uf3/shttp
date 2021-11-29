@@ -11,7 +11,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#define SERVER_ROOT "/Users/lufe/develop/system/webserver_c/src/htdocs"
+#define SERVER_ROOT "/Users/lufe/develop/system/htdocs"
 
 int isFile(const char* name);
 void getRequestFileName(const char* req, char* filename);
