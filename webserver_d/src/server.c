@@ -13,12 +13,13 @@
 
 #define SERVER_ROOT "/Users/lufe/develop/system/htdocs"
 
+void error(const char* message);
 int isFile(const char* name);
-void getRequestFileName(const char* req, char* filename);
 int isFileExist(char* filename);
+void getRequestFileName(const char* req, char* filename);
 void server_status(int socket, const char* message);
 
-int main(int argc, char *argv[]) {
+int main(void) {
 
   int sock_srv, socket_cli;
   struct sockaddr_in srv;
@@ -28,8 +29,7 @@ int main(int argc, char *argv[]) {
   int i = 0;
 
   if ( (sock_srv = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
-    perror("socket");
-    exit(EXIT_FAILURE);
+    error("socket");
   }
 
   // Initialize
@@ -40,17 +40,14 @@ int main(int argc, char *argv[]) {
 
   srv_sock_len = sizeof(srv);
   if ( (bind(sock_srv, (struct sockaddr*)&srv, srv_sock_len)) < 0 ) {
-    perror("bind");
-    exit(EXIT_FAILURE);
+    error("bind");
   }
 
   if( listen(sock_srv, 5) < 0 ) {
-    perror("listen");
-    exit(EXIT_FAILURE);
+    error("listen");
   }
 
   puts("TCP/IP socket available");
-  // printf("\taddr %s\n", IPbuf);
   printf("\taddr %s\n", inet_ntoa(srv.sin_addr));
   printf("\tport %d\n", ntohs(srv.sin_port));
 
@@ -71,8 +68,7 @@ int main(int argc, char *argv[]) {
     memset(filename,0,sizeof(filename));
     int req = read(socket_cli, buff, sizeof(buff));
     if (req < 0) {
-      perror("read");
-      exit(EXIT_FAILURE);
+      error("read");
     }
 
     // Print http request
@@ -85,9 +81,7 @@ int main(int argc, char *argv[]) {
     putchar('\n');
 
     getRequestFileName(buff, filename);
-//    filename[strlen(filename)-1] = '\0';
-    printf("%s\nsize%lu\n", filename, strlen(filename));
-    //  exit(1);
+//    printf("%s\nsize%lu\n", filename, strlen(filename));
     char tmp[1024];
     char request[10000];
     if(isFile(filename) == 1) {
@@ -98,11 +92,10 @@ int main(int argc, char *argv[]) {
       strcat(tmp, "index.html");
       strcpy(filename, tmp);
     }
-    printf("%s\nsize%lu\n", filename, strlen(filename));
+//    printf("%s\nsize%lu\n", filename, strlen(filename));
 
     if(isFileExist(filename) != 0) {
       strcpy(request, "HTTP/1.0 404 NotFound\r\n");
-//      server_status(socket_cli, "HTTP/1.0 404 NotFound\r\n");
     }
 
     if(isFileExist(filename) == 0) {
@@ -127,6 +120,11 @@ int main(int argc, char *argv[]) {
   exit(EXIT_SUCCESS);
 }
 
+void error(const char* message) {
+  perror(message);
+  exit(1);
+}
+
 int isFile(const char* name) {
   struct stat* stat_buf;
   stat(name, stat_buf);
@@ -134,9 +132,18 @@ int isFile(const char* name) {
     return 0;
   } else if((stat_buf->st_mode & S_IFMT) == S_IFDIR) {
     return 1;
-  } else {
-    return -1;
+  } 
+  error("stat");
+  return EXIT_FAILURE; // ないとWarning
+}
+
+int isFileExist(char* filename) {
+  int fd = open(filename, O_RDONLY);
+  close(fd);
+  if(fd > 0) {
+    return 0;
   }
+  return 1;
 }
 
 void getRequestFileName(const char* req, char* name) {
@@ -151,18 +158,8 @@ void getRequestFileName(const char* req, char* name) {
   strcat(name, path);
 }
 
-int isFileExist(char* filename) {
-  int fd = open(filename, O_RDONLY);
-  close(fd);
-  if(fd > 0) {
-    return 0;
-  }
-  return 1;
-}
-
 void server_status(int socket, const char* message) {
   if(write(socket, message, strlen(message)) < 1) {
-    perror("write");
-    exit(EXIT_FAILURE);
+    error("write");
   }
 }
