@@ -12,11 +12,10 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#define SERVER_ROOT "/Users/lufe/develop/system/htdocs"
+#define SERVER_ROOT "/home/lufe/develop/network-dev/htdocs"
 
 
-int isDir(const char* name);
-void getRequestFileName(const char* req, char* filename);
+void getRequestFileName(const char* req, char full_path[]);
 int isFileExist(char* filename);
 void server_status(int socket, const char* message);
 
@@ -86,7 +85,6 @@ int main(int argc, char *argv[]) {
 void httpd(int socket){
   pthread_detach(pthread_self());
 
-
   char request[8190];
   memset(request, 0, sizeof(request));
   int request_bytes = read(socket, request, sizeof(request));
@@ -103,17 +101,8 @@ void httpd(int socket){
   char tmp[1024];
   memset(tmp, 0, sizeof(tmp));
   getRequestFileName(request, file_path);
-  // printf("%s\n size%lu\n, file_path, strlen(file_path)");
+  printf("%s\n size%lu\n", file_path, strlen(file_path));
   printf("\n debug \n");
-  if(isDir(file_path) == 1) {
-    strcpy(tmp, file_path);
-    if(tmp[strlen(tmp)-1] != '/') {
-      strcat(tmp, "/");
-    }
-    strcat(tmp, "index.html");
-    strcpy(file_path, tmp);
-  }
-  // printf("%s\n size%lu\n, file_path, strlen(file_path)");
 
   char response[4000];
   memset(response, 0, sizeof(response));
@@ -138,31 +127,36 @@ void httpd(int socket){
   printf("\n debug2 \n");
   fflush(stdout);
   write(socket, response, strlen(response));
+  printf("\n%s\n",response);
   printf("\n debug3 \n");
+  close(socket);
 }
 
-int isDir(const char* name) {
-  struct stat* stat_buf;
-  stat(name, stat_buf);
-  if((stat_buf->st_mode & S_IFMT) == S_IFREG) {
-    return 0;
-  } else if((stat_buf->st_mode & S_IFMT) == S_IFDIR) {
-    return 1;
-  } else {
-    return -1;
-  }
-}
-
-void getRequestFileName(const char* req, char* name) {
+void getRequestFileName(const char* req, char* full_path) {
   char tmp[1024];
   memset(tmp, 0, sizeof(tmp));
   sscanf(req, "%[^\n]", tmp); 
+  printf("request_line: %s\n", tmp);
 
   char *method = strtok(tmp, " ");       
   char *path = strtok(NULL, " ");  
 
-  strcpy(name, SERVER_ROOT);
-  strcat(name, path);
+  strncpy(full_path, SERVER_ROOT, sizeof(SERVER_ROOT));
+  strncat(full_path, path, strlen(path));
+
+  if(full_path[strlen(full_path) - 1] == '/') {
+    full_path[strlen(full_path) - 1] = '\0';
+  }
+
+  struct stat stat_buf;
+  stat(full_path, &stat_buf);
+
+  if(S_ISDIR(stat_buf.st_mode)) {
+    char* index = "/index.html";
+    strncat(full_path, index, strlen(index));
+  }
+
+  printf("full_path: %s\n", full_path);
 }
 
 int isFileExist(char* filename) {
