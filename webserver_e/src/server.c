@@ -21,6 +21,7 @@ void server_status(int socket, const char* message);
 
 void httpd(int socket);
 
+void printLine(void);
 void error(const char* message);
 
 int main(int argc, char *argv[]) {
@@ -54,9 +55,7 @@ int main(int argc, char *argv[]) {
   printf("\taddr %s\n", inet_ntoa(srv.sin_addr));
   printf("\tport %d\n", ntohs(srv.sin_port));
 
-  putchar('\n');
-  puts("-----------------------------------------------------------------------------------");
-  putchar('\n');
+  printLine();
 
   while(1){
     struct sockaddr_in cli;
@@ -92,9 +91,8 @@ void httpd(int socket){
     error("read");
   }
   printf("HTTP Request: %s\n", request);
-  putchar('\n');
-  puts("-----------------------------------------------------------------------------------");
-  putchar('\n');
+
+  printLine();
 
   char file_path[1024];
   memset(file_path, 0, sizeof(file_path));
@@ -166,6 +164,12 @@ int isFileExist(char* filename) {
     return 0;
   }
   return 1;
+}
+
+void printLine(void) {
+  putchar('\n');
+  puts("-----------------------------------------------------------------------------------");
+  putchar('\n');
 }
 
 void error(const char* message) {
