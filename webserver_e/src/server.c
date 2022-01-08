@@ -29,7 +29,6 @@ int main(int argc, char *argv[]) {
   int socket_srv;
   struct sockaddr_in srv;
   socklen_t srv_sock_len;
-  int i = 0;
 
   if ( (socket_srv = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
     error("socket");
@@ -68,10 +67,9 @@ int main(int argc, char *argv[]) {
       error("accept");
     }
 
-    int status;
     pthread_t worker;
 
-    if(pthread_create(&worker, NULL, (void *)httpd, (void *)socket_cli ) != 0) {
+    if(pthread_create(&worker, NULL, (void *)httpd, &socket_cli ) != 0) {
       perror("pthread_create");
       break;
     }
